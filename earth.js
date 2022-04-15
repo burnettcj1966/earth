@@ -11,7 +11,6 @@ var index = 0;
 var pointsArray = [];
 var normalsArray = [];
 
-
 var near = -10;
 var far = 10;
 var radius = 1.5;
@@ -160,6 +159,7 @@ window.onload = function init() {
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
     
+    //VTex
     var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
     gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vTexCoord );
@@ -173,19 +173,18 @@ window.onload = function init() {
         configureTexture( image );
     }
     image.src = "./earth_texture_day.jpg";
-    
 
 
     gl.uniform4fv( gl.getUniformLocation(program,
-        "ambientProduct"),flatten(ambientProduct) );
+         "ambientProduct"),flatten(ambientProduct) );
     gl.uniform4fv( gl.getUniformLocation(program,
-        "diffuseProduct"),flatten(diffuseProduct) );
+         "diffuseProduct"),flatten(diffuseProduct) );
     gl.uniform4fv( gl.getUniformLocation(program,
-        "specularProduct"),flatten(specularProduct) );
+         "specularProduct"),flatten(specularProduct) );
     gl.uniform4fv( gl.getUniformLocation(program,
-        "lightPosition"),flatten(lightPosition) );
+         "lightPosition"),flatten(lightPosition) );
     gl.uniform1f( gl.getUniformLocation(program,
-        "shininess"),materialShininess );
+         "shininess"),materialShininess );
     render();
 }
 
@@ -193,6 +192,9 @@ window.onload = function init() {
 function render() {
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clearColor(0, 0, 0, 1.0);
+
+    theta += 0.0025;
 
     eye = vec3(radius*Math.sin(theta)*Math.cos(phi),
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
