@@ -51,14 +51,25 @@ var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
 var texture;
+var texCoordsArray = [];
+
+var texCoord = [
+    vec2(0, 0),
+    vec2(0, 1),
+    vec2(1, 1),
+    vec2(1, 0)
+];
 
 function triangle(a, b, c) {
 
 
 
      pointsArray.push(a);
+     texCoordsArray.push(texCoord[0]);
      pointsArray.push(b);
+     texCoordsArray.push(texCoord[1]);
      pointsArray.push(c);
+     texCoordsArray.push(texCoord[2]);
 
      // normals are vectors
 
@@ -108,9 +119,10 @@ function configureTexture( image ) {
     gl.texImage2D( gl.TEXTURE_2D, 0, gl.RGB,
          gl.RGB, gl.UNSIGNED_BYTE, image );
     gl.generateMipmap( gl.TEXTURE_2D );
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,
-                      gl.NEAREST_MIPMAP_LINEAR );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER,gl.NEAREST_MIPMAP_LINEAR );
     gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
+    //gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    //gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
     gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 }
@@ -137,7 +149,7 @@ window.onload = function init() {
     var specularProduct = mult(lightSpecular, materialSpecular);
 
 
-    tetrahedron(va, vb, vc, vd, 6);
+    tetrahedron(va, vb, vc, vd, 5);
 
     //NBUFFER
     var nBuffer = gl.createBuffer();
@@ -159,21 +171,25 @@ window.onload = function init() {
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
     
+    //VBuffer
+    var tBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
+
     //VTex
     var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
     gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vTexCoord );
 
-    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
-    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
-    normalMatrixLoc = gl.getUniformLocation( program, "normalMatrix" );
-
     var image = new Image();
     image.onload = function() {
         configureTexture( image );
     }
-    image.src = "./earth_texture_day.jpg";
+    image.src = "./earth.png";
 
+    modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
+    projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
+    normalMatrixLoc = gl.getUniformLocation( program, "normalMatrix" );
 
     gl.uniform4fv( gl.getUniformLocation(program,
          "ambientProduct"),flatten(ambientProduct) );
@@ -185,6 +201,7 @@ window.onload = function init() {
          "lightPosition"),flatten(lightPosition) );
     gl.uniform1f( gl.getUniformLocation(program,
          "shininess"),materialShininess );
+
     render();
 }
 
@@ -194,6 +211,7 @@ function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor(0, 0, 0, 1.0);
 
+    //Rotation element
     theta += 0.0025;
 
     eye = vec3(radius*Math.sin(theta)*Math.cos(phi),
@@ -201,9 +219,6 @@ function render() {
 
     modelViewMatrix = lookAt(eye, at , up);
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
-    // normal matrix only really need if there is nonuniform scaling
-    // it's here for generality but since there is
-    // no scaling in this example we could just use modelView matrix in shaders
 
     normalMatrix = [
         vec3(modelViewMatrix[0][0], modelViewMatrix[0][1], modelViewMatrix[0][2]),
