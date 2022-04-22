@@ -53,15 +53,26 @@ var up = vec3(0.0, 1.0, 0.0);
 var texture;
 var texCoordsArray = [];
 
+var u, v; //parametric points for sphere texture
+function computeParametric(pointsArray) {
+    for (var i = 0; i < pointsArray.length; i++)
+    {
+        var x = pointsArray[i][0] == 0 ? 0 : pointsArray[i][0];
+        var y = pointsArray[i][1] == 0 ? 0 : pointsArray[i][1];
+        var z = pointsArray[i][2] == 0 ? 0 : pointsArray[i][2];   
+
+        u = Math.atan2(x, z) / (2*Math.PI) + 0.5;
+        v = (Math.asin(y/Math.PI)) + 0.5;
+
+        texCoordsArray.push(u,v);
+    }
+}
 
 function triangle(a, b, c) {
-
-
 
      pointsArray.push(a);
      pointsArray.push(b);
      pointsArray.push(c);
-
      // normals are vectors
 
      normalsArray.push(a[0],a[1], a[2], 0.0);
@@ -140,7 +151,6 @@ window.onload = function init() {
 
 
     tetrahedron(va, vb, vc, vd, 5);
-
     //NBUFFER
     var nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
@@ -161,14 +171,16 @@ window.onload = function init() {
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
     
+    computeParametric(pointsArray);
+
     //VBuffer
     var tBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
 
     //VTex
     var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
-    gl.vertexAttribPointer( vTexCoord, 4, gl.FLOAT, false, 0, 0 );
+    gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vTexCoord );
 
     var image = new Image();
