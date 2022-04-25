@@ -4,9 +4,9 @@ var canvas;
 var gl;
 var program;
 
-var numTimesToSubdivide = 3;
-
 var index = 0;
+
+var set = false;
 
 var pointsArray = [];
 var normalsArray = [];
@@ -62,7 +62,7 @@ function computeParametric(pointsArray) {
         var z = pointsArray[i][2] == 0 ? 0 : pointsArray[i][2];   
 
         u = Math.atan2(x, z) / (2*Math.PI) + 0.5;
-        v = (Math.asin(y/Math.PI)) + 0.5;
+        v = (Math.asin(y) / Math.PI) + 0.5;
 
         texCoordsArray.push(u,v);
     }
@@ -187,7 +187,7 @@ window.onload = function init() {
     image.onload = function() {
         configureTexture( image );
     }
-    image.src = "./earth.png";
+    image.src = "./earth_texture_day.jpg";
 
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
@@ -214,7 +214,7 @@ function render() {
     gl.clearColor(0, 0, 0, 1.0);
 
     //Rotation element
-    theta += 0.0025;
+    theta += 0.0015;
 
     eye = vec3(radius*Math.sin(theta)*Math.cos(phi),
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
@@ -222,10 +222,11 @@ function render() {
     modelViewMatrix = lookAt(eye, at , up);
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
 
+    //takes the transpose of the modelViewMatrix to rotate normals
     normalMatrix = [
-        vec3(modelViewMatrix[0][0], modelViewMatrix[0][1], modelViewMatrix[0][2]),
-        vec3(modelViewMatrix[1][0], modelViewMatrix[1][1], modelViewMatrix[1][2]),
-        vec3(modelViewMatrix[2][0], modelViewMatrix[2][1], modelViewMatrix[2][2])
+        vec3(modelViewMatrix[0][0], modelViewMatrix[1][0], modelViewMatrix[2][0]),
+        vec3(modelViewMatrix[0][1], modelViewMatrix[1][1], modelViewMatrix[2][1]),
+        vec3(modelViewMatrix[0][2], modelViewMatrix[1][2], modelViewMatrix[2][2])
     ];
 
     gl.uniformMatrix4fv(modelViewMatrixLoc, false, flatten(modelViewMatrix) );

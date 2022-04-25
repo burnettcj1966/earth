@@ -21,8 +21,7 @@
         uniform mat3 normalMatrix;
 
         uniform vec3 theta;
-        
-        
+
         void
         main()
         {
@@ -53,7 +52,6 @@
             
             vec3 N = normalize( normalMatrix*vNormal.xyz);
         
-        
             // Compute terms in the illumination equation
             vec4 ambient = ambientProduct;
         
@@ -69,16 +67,19 @@
         
             gl_Position = projectionMatrix * modelViewMatrix * vPosition;
             
+            //gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+
             fColor = ambient + diffuse +specular;
         
             fTexCoord = vTexCoord;
 
             fColor.a = 1.0;
         }
+        
     </script>
     
     <script id="fragment-shader" type="x-shader/x-fragment">
-    
+
         precision mediump float;
         
         varying vec4 fColor;
@@ -108,6 +109,5 @@
     
     
 </body>
-
 
 </html>
