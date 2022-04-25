@@ -3,6 +3,7 @@
 var canvas;
 var gl;
 var program;
+var skyboxProgram;
 
 var index = 0;
 
@@ -10,6 +11,7 @@ var set = false;
 
 var pointsArray = [];
 var normalsArray = [];
+var cubeMapPoints = [];
 
 var near = -10;
 var far = 10;
@@ -46,14 +48,150 @@ var modelViewMatrixLoc, projectionMatrixLoc;
 
 var normalMatrix, normalMatrixLoc;
 
+//DELETE THESE
+var rotationMatrix, rotationMatrixLoc; //TO DELETE
+var  angle = 0.0;
+var  axis = [0, 0, 1];
+
+var 	trackingMouse = false;
+var   trackballMove = false;
+
+var lastPos = [0, 0, 0];
+var curx, cury;
+var startX, startY;
+
+
 var eye;
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var texture;
+var texture, skyboxtexture;
 var texCoordsArray = [];
 
 var u, v; //parametric points for sphere texture
+
+// var skyboxvertices = [
+//     -1.0,  1.0, -1.0,
+//     -1.0, -1.0, -1.0,
+//      1.0, -1.0, -1.0,
+//      1.0, -1.0, -1.0,
+//      1.0,  1.0, -1.0,
+//     -1.0,  1.0, -1.0,
+
+//     -1.0, -1.0,  1.0,
+//     -1.0, -1.0, -1.0,
+//     -1.0,  1.0, -1.0,
+//     -1.0,  1.0, -1.0,
+//     -1.0,  1.0,  1.0,
+//     -1.0, -1.0,  1.0,
+
+//      1.0, -1.0, -1.0,
+//      1.0, -1.0,  1.0,
+//      1.0,  1.0,  1.0,
+//      1.0,  1.0,  1.0,
+//      1.0,  1.0, -1.0,
+//      1.0, -1.0, -1.0,
+
+//     -1.0, -1.0,  1.0,
+//     -1.0,  1.0,  1.0,
+//      1.0,  1.0,  1.0,
+//      1.0,  1.0,  1.0,
+//      1.0, -1.0,  1.0,
+//     -1.0, -1.0,  1.0,
+
+//     -1.0,  1.0, -1.0,
+//      1.0,  1.0, -1.0,
+//      1.0,  1.0,  1.0,
+//      1.0,  1.0,  1.0,
+//     -1.0,  1.0,  1.0,
+//     -1.0,  1.0, -1.0,
+
+//     -1.0, -1.0, -1.0,
+//     -1.0, -1.0,  1.0,
+//      1.0, -1.0, -1.0,
+//      1.0, -1.0, -1.0,
+//     -1.0, -1.0,  1.0,
+//      1.0, -1.0,  1.0
+
+// ];
+
+function multq( a,  b)
+{
+   // vec4(a.x*b.x - dot(a.yzw, b.yzw), a.x*b.yzw+b.x*a.yzw+cross(b.yzw, a.yzw))
+
+   var s = vec3(a[1], a[2], a[3]);
+   var t = vec3(b[1], b[2], b[3]);
+   return(vec4(a[0]*b[0] - dot(s,t), add(cross(t, s), add(scale(a[0],t), scale(b[0],s)))));
+}
+function trackballView( x,  y ) {
+    var d, a;
+    var v = [];
+
+    v[0] = x;
+    v[1] = y;
+
+    d = v[0]*v[0] + v[1]*v[1];
+    if (d < 1.0)
+      v[2] = Math.sqrt(1.0 - d);
+    else {
+      v[2] = 0.0;
+      a = 1.0 /  Math.sqrt(d);
+      v[0] *= a;
+      v[1] *= a;
+    }
+    return v;
+}
+
+function mouseMotion( x,  y)
+{
+    var dx, dy, dz;
+
+    var curPos = trackballView(x, y);
+    if(trackingMouse) {
+      dx = curPos[0] - lastPos[0];
+      dy = curPos[1] - lastPos[1];
+      dz = curPos[2] - lastPos[2];
+
+      if (dx || dy || dz) {
+	       angle = -0.1 * Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+
+	       axis[0] = lastPos[1]*curPos[2] - lastPos[2]*curPos[1];
+	       axis[1] = lastPos[2]*curPos[0] - lastPos[0]*curPos[2];
+	       axis[2] = lastPos[0]*curPos[1] - lastPos[1]*curPos[0];
+
+         lastPos[0] = curPos[0];
+	       lastPos[1] = curPos[1];
+	       lastPos[2] = curPos[2];
+      }
+    }
+    render();
+}
+
+function startMotion( x,  y)
+{
+    trackingMouse = true;
+    startX = x;
+    startY = y;
+    curx = x;
+    cury = y;
+
+    lastPos = trackballView(x, y);
+	  trackballMove=true;
+}
+
+function stopMotion( x,  y)
+{
+    trackingMouse = false;
+    if (startX != x || startY != y) {
+    }
+    else {
+	     angle = 0.0;
+	     trackballMove = false;
+    }
+}
+
+
 function computeParametric(pointsArray) {
     for (var i = 0; i < pointsArray.length; i++)
     {
@@ -128,6 +266,63 @@ function configureTexture( image ) {
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 }
 
+// function configureSkyBox() {
+//     skyboxtexture = gl.createTexture();
+//     gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxtexture);
+
+//   const faceInfos = [
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
+//       url: './images/back.png',
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
+//       url: './images/top.png',
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
+//       url: './images/right.png',
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
+//       url: './images/front.png',
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
+//       url: './images/left.png',
+//     },
+//     {
+//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
+//       url: './images/bottom.png',
+//     },
+//   ];
+//   faceInfos.forEach((faceInfo) => {
+//     const {target, url} = faceInfo;
+
+//     // Upload the canvas to the cubemap face.
+//     const level = 0;
+//     const internalFormat = gl.RGBA;
+//     const width = 1024;
+//     const height = 1024;
+//     const format = gl.RGBA;
+//     const type = gl.UNSIGNED_BYTE;
+
+//     // setup each face so it's immediately renderable
+//     gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null);
+
+//     // Asynchronously load an image
+//     const image = new Image();
+//     image.src = url;
+//     image.addEventListener('load', function() {
+//       // Now that the image has loaded make copy it to the texture.
+//       gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxtexture);
+//       gl.texImage2D(target, level, internalFormat, format, type, image);
+//       gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+//     });
+//   });
+//   gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+//   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+// }
 
 window.onload = function init() {
 
@@ -142,15 +337,15 @@ window.onload = function init() {
     gl.enable(gl.DEPTH_TEST);
 
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
+    skyboxProgram = initShaders( gl, "skybox-vertex-shader", "skybox-fragment-shader");
     gl.useProgram( program );
-
 
     var ambientProduct = mult(lightAmbient, materialAmbient);
     var diffuseProduct = mult(lightDiffuse, materialDiffuse);
     var specularProduct = mult(lightSpecular, materialSpecular);
 
 
-    tetrahedron(va, vb, vc, vd, 5);
+    tetrahedron(va, vb, vc, vd, 4);
     //NBUFFER
     var nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
@@ -170,7 +365,6 @@ window.onload = function init() {
     var vPosition = gl.getAttribLocation( program, "vPosition");
     gl.vertexAttribPointer(vPosition, 4, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vPosition);
-    
     computeParametric(pointsArray);
 
     //VBuffer
@@ -178,16 +372,22 @@ window.onload = function init() {
     gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
 
+    //Rotation Matrix (TO BE DELETED)
+    rotationMatrix = vec4(1,0,0,0);
+    rotationMatrixLoc = gl.getUniformLocation(program, "r");
+    gl.uniform4fv(rotationMatrixLoc, flatten(rotationMatrix));
+
     //VTex
     var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
     gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vTexCoord );
 
+    //creates texture using the earth image
     var image = new Image();
     image.onload = function() {
         configureTexture( image );
     }
-    image.src = "./earth_texture_day.jpg";
+    image.src = "./images/earth_texture_day.jpg";
 
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
@@ -204,6 +404,42 @@ window.onload = function init() {
     gl.uniform1f( gl.getUniformLocation(program,
          "shininess"),materialShininess );
 
+    canvas.addEventListener("mousedown", function(event){
+        var x = 2*event.clientX/canvas.width-1;
+        var y = 2*(canvas.height-event.clientY)/canvas.height-1;
+        startMotion(x, y);
+    });
+      
+    canvas.addEventListener("mouseup", function(event){
+        var x = 2*event.clientX/canvas.width-1;
+        var y = 2*(canvas.height-event.clientY)/canvas.height-1;
+        stopMotion(x, y);
+        });
+      
+    canvas.addEventListener("mousemove", function(event){
+        var x = 2*event.clientX/canvas.width-1;
+        var y = 2*(canvas.height-event.clientY)/canvas.height-1;
+        mouseMotion(x, y);
+    } );
+    //creates the skybox texture using the images
+    // gl.depthFunc(gl.LEQUAL);
+    // gl.useProgram ( skyboxProgram );
+    
+    // //SkyBox Buffer
+    // var skyboxBuffer = gl.createBuffer();
+    // gl.bindBuffer( gl.ARRAY_BUFFER, skyboxBuffer);
+    // gl.bufferData( gl.ARRAY_BUFFER, flatten(skyboxvertices), gl.STATIC_DRAW);
+    
+    // var vSkyBoxCoord = gl.getAttribLocation(skyboxProgram, "position");
+    // gl.vertexAttribPointer (vSkyBoxCoord, 2, gl.FLOAT, false, 0, 0);
+    // gl.enableVertexAttribArray( vSkyBoxCoord );
+
+    // configureSkyBox();
+    
+    //go back to original program after creating skybox
+    gl.useProgram(program);
+
+
     render();
 }
 
@@ -213,13 +449,25 @@ function render() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor(0, 0, 0, 1.0);
 
+    if(trackballMove) {
+        axis = normalize(axis);
+        var c = Math.cos(angle/2.0);
+        var s = Math.sin(angle/2.0);
+
+        //console.log("before multq");
+        var rotation = vec4(c, s*axis[0], s*axis[1], s*axis[2]);
+        rotationMatrix = multq(rotationMatrix, rotation);
+
+        gl.uniform4fv(rotationMatrixLoc, flatten(rotationMatrix));
+    }
+
     //Rotation element
-    theta += 0.0015;
+    theta += 0.0001;
 
     eye = vec3(radius*Math.sin(theta)*Math.cos(phi),
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
 
-    modelViewMatrix = lookAt(eye, at , up);
+    modelViewMatrix = lookAt(eye, at , up );
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
 
     //takes the transpose of the modelViewMatrix to rotate normals

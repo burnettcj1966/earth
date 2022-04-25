@@ -22,6 +22,18 @@
 
         uniform vec3 theta;
 
+        uniform vec4 r;
+
+        vec4 multq(vec4 a, vec4 b)
+        {
+            return (vec4(a.x*b.x - dot(a.yzw, b.yzw), a.x*b.yzw+b.x*a.yzw+cross(b.yzw,a.yzw)));
+        }
+
+        vec4 invq(vec4 a)
+        {
+            return (vec4(a.x, -a.yzw) / dot(a,a));
+        }
+
         void
         main()
         {
@@ -64,8 +76,13 @@
             if( dot(L, N) < 0.0 ) {
             specular = vec4(0.0, 0.0, 0.0, 1.0);
             } 
-        
-            gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+
+            vec4 p = vec4(0.0, vPosition.xyz);
+            p = multq(r, multq(p, invq(r)));
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(p.yzw, 1.0);
+
+            //gl_Position = projectionMatrix * modelViewMatrix *vPosition * r;
+            //gl_Position = projectionMatrix * modelViewMatrix * vPosition;
             
             //gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
 
@@ -91,6 +108,32 @@
         main()
         {
             gl_FragColor = fColor*texture2D(texture, fTexCoord);
+        }
+    </script>
+
+    <script id="skybox-vertex-shader" type = "x-shader/x-vertex">
+        attribute vec3 position;
+        varying vec3 vTexCoord;
+
+        uniform mat4 projectionMatrix;
+        uniform mat4 viewMatrix;
+
+        void main()
+        {
+            vTexCoord = position;
+            gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0);
+        }
+    </script>
+
+    <script id = "skybox-fragment-shader" type = "x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec3 vTexCoord;
+        uniform samplerCube skybox;
+
+        void main()
+        {   
+            gl_FragColor = textureCube(skybox, vTexCoord);
         }
     </script>
     
