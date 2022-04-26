@@ -33,12 +33,12 @@ var vd = vec4(0.816497, -0.471405, 0.333333,1);
 var lightPosition = vec4(1.0, 1.0, 1.0, 0.0 );
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+var lightSpecular = vec4( 0.0, 1.0, 1.0, 1.0 );
 
 var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
 var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0 );
 var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
-var materialShininess = 20.0;
+var materialShininess = 10.0;
 
 var ctm;
 var ambientColor, diffuseColor, specularColor;
@@ -48,8 +48,7 @@ var modelViewMatrixLoc, projectionMatrixLoc;
 
 var normalMatrix, normalMatrixLoc;
 
-//DELETE THESE
-var rotationMatrix, rotationMatrixLoc; //TO DELETE
+var rotationMatrix, rotationMatrixLoc; 
 var  angle = 0.0;
 var  axis = [0, 0, 1];
 
@@ -65,55 +64,12 @@ var eye;
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var texture, skyboxtexture;
+var texture;
 var texCoordsArray = [];
 
 var u, v; //parametric points for sphere texture
 
-// var skyboxvertices = [
-//     -1.0,  1.0, -1.0,
-//     -1.0, -1.0, -1.0,
-//      1.0, -1.0, -1.0,
-//      1.0, -1.0, -1.0,
-//      1.0,  1.0, -1.0,
-//     -1.0,  1.0, -1.0,
 
-//     -1.0, -1.0,  1.0,
-//     -1.0, -1.0, -1.0,
-//     -1.0,  1.0, -1.0,
-//     -1.0,  1.0, -1.0,
-//     -1.0,  1.0,  1.0,
-//     -1.0, -1.0,  1.0,
-
-//      1.0, -1.0, -1.0,
-//      1.0, -1.0,  1.0,
-//      1.0,  1.0,  1.0,
-//      1.0,  1.0,  1.0,
-//      1.0,  1.0, -1.0,
-//      1.0, -1.0, -1.0,
-
-//     -1.0, -1.0,  1.0,
-//     -1.0,  1.0,  1.0,
-//      1.0,  1.0,  1.0,
-//      1.0,  1.0,  1.0,
-//      1.0, -1.0,  1.0,
-//     -1.0, -1.0,  1.0,
-
-//     -1.0,  1.0, -1.0,
-//      1.0,  1.0, -1.0,
-//      1.0,  1.0,  1.0,
-//      1.0,  1.0,  1.0,
-//     -1.0,  1.0,  1.0,
-//     -1.0,  1.0, -1.0,
-
-//     -1.0, -1.0, -1.0,
-//     -1.0, -1.0,  1.0,
-//      1.0, -1.0, -1.0,
-//      1.0, -1.0, -1.0,
-//     -1.0, -1.0,  1.0,
-//      1.0, -1.0,  1.0
-
-// ];
 
 function multq( a,  b)
 {
@@ -266,63 +222,7 @@ function configureTexture( image ) {
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 }
 
-// function configureSkyBox() {
-//     skyboxtexture = gl.createTexture();
-//     gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxtexture);
 
-//   const faceInfos = [
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_X,
-//       url: './images/back.png',
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X,
-//       url: './images/top.png',
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y,
-//       url: './images/right.png',
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y,
-//       url: './images/front.png',
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z,
-//       url: './images/left.png',
-//     },
-//     {
-//       target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z,
-//       url: './images/bottom.png',
-//     },
-//   ];
-//   faceInfos.forEach((faceInfo) => {
-//     const {target, url} = faceInfo;
-
-//     // Upload the canvas to the cubemap face.
-//     const level = 0;
-//     const internalFormat = gl.RGBA;
-//     const width = 1024;
-//     const height = 1024;
-//     const format = gl.RGBA;
-//     const type = gl.UNSIGNED_BYTE;
-
-//     // setup each face so it's immediately renderable
-//     gl.texImage2D(target, level, internalFormat, width, height, 0, format, type, null);
-
-//     // Asynchronously load an image
-//     const image = new Image();
-//     image.src = url;
-//     image.addEventListener('load', function() {
-//       // Now that the image has loaded make copy it to the texture.
-//       gl.bindTexture(gl.TEXTURE_CUBE_MAP, skyboxtexture);
-//       gl.texImage2D(target, level, internalFormat, format, type, image);
-//       gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-//     });
-//   });
-//   gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-//   gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-// }
 
 window.onload = function init() {
 
@@ -337,7 +237,7 @@ window.onload = function init() {
     gl.enable(gl.DEPTH_TEST);
 
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
-    skyboxProgram = initShaders( gl, "skybox-vertex-shader", "skybox-fragment-shader");
+
     gl.useProgram( program );
 
     var ambientProduct = mult(lightAmbient, materialAmbient);
@@ -367,20 +267,21 @@ window.onload = function init() {
     gl.enableVertexAttribArray(vPosition);
     computeParametric(pointsArray);
 
+    //Rotation Matrix 
+    rotationMatrix = vec4(1,0,0,0);
+    rotationMatrixLoc = gl.getUniformLocation(program, "r");
+    gl.uniform4fv(rotationMatrixLoc, flatten(rotationMatrix));
+
     //VBuffer
     var tBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, tBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(texCoordsArray), gl.STATIC_DRAW );
 
-    //Rotation Matrix (TO BE DELETED)
-    rotationMatrix = vec4(1,0,0,0);
-    rotationMatrixLoc = gl.getUniformLocation(program, "r");
-    gl.uniform4fv(rotationMatrixLoc, flatten(rotationMatrix));
-
     //VTex
     var vTexCoord = gl.getAttribLocation( program, "vTexCoord" );
     gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vTexCoord );
+
 
     //creates texture using the earth image
     var image = new Image();
@@ -421,24 +322,6 @@ window.onload = function init() {
         var y = 2*(canvas.height-event.clientY)/canvas.height-1;
         mouseMotion(x, y);
     } );
-    //creates the skybox texture using the images
-    // gl.depthFunc(gl.LEQUAL);
-    // gl.useProgram ( skyboxProgram );
-    
-    // //SkyBox Buffer
-    // var skyboxBuffer = gl.createBuffer();
-    // gl.bindBuffer( gl.ARRAY_BUFFER, skyboxBuffer);
-    // gl.bufferData( gl.ARRAY_BUFFER, flatten(skyboxvertices), gl.STATIC_DRAW);
-    
-    // var vSkyBoxCoord = gl.getAttribLocation(skyboxProgram, "position");
-    // gl.vertexAttribPointer (vSkyBoxCoord, 2, gl.FLOAT, false, 0, 0);
-    // gl.enableVertexAttribArray( vSkyBoxCoord );
-
-    // configureSkyBox();
-    
-    //go back to original program after creating skybox
-    gl.useProgram(program);
-
 
     render();
 }
@@ -447,7 +330,7 @@ window.onload = function init() {
 function render() {
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.clearColor(0, 0, 0, 1.0);
+    gl.clearColor(0, 0, 0, 0.0);
 
     if(trackballMove) {
         axis = normalize(axis);

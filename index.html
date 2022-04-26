@@ -81,10 +81,6 @@
             p = multq(r, multq(p, invq(r)));
             gl_Position = projectionMatrix * modelViewMatrix * vec4(p.yzw, 1.0);
 
-            //gl_Position = projectionMatrix * modelViewMatrix *vPosition * r;
-            //gl_Position = projectionMatrix * modelViewMatrix * vPosition;
-            
-            //gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
 
             fColor = ambient + diffuse +specular;
         
@@ -111,31 +107,7 @@
         }
     </script>
 
-    <script id="skybox-vertex-shader" type = "x-shader/x-vertex">
-        attribute vec3 position;
-        varying vec3 vTexCoord;
-
-        uniform mat4 projectionMatrix;
-        uniform mat4 viewMatrix;
-
-        void main()
-        {
-            vTexCoord = position;
-            gl_Position = projectionMatrix * viewMatrix * vec4(position, 1.0);
-        }
-    </script>
-
-    <script id = "skybox-fragment-shader" type = "x-shader/x-fragment">
-        precision mediump float;
-
-        varying vec3 vTexCoord;
-        uniform samplerCube skybox;
-
-        void main()
-        {   
-            gl_FragColor = textureCube(skybox, vTexCoord);
-        }
-    </script>
+    <canvas id = "gl-canvas" style = "background: url('images/back.png')" width = "1024" height = "1024"></canvas>
     
 </head>
 <body>
