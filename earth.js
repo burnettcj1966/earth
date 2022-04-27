@@ -326,6 +326,17 @@ window.onload = function init() {
         mouseMotion(x, y);
     } );
 
+    canvas.addEventListener("wheel", function(event) {
+        var wheelChange = event.deltaY/1000;
+        if (ytop + wheelChange > 0) {
+            left -= wheelChange;
+            right += wheelChange;
+            bottom -= wheelChange;
+            ytop += wheelChange;
+            console.log(ytop);
+        }
+    });
+
     document.getElementById("Button0").onclick = function() {
         if (clouds) {
             createTexture("./images/earthwclouds_resize.png");
