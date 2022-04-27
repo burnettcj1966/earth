@@ -1,6 +1,8 @@
 <html>
     
 <head>
+
+    <button id = "Button0">Toggle Clouds</button>
     
     <script id="vertex-shader" type="x-shader/x-vertex">
 
@@ -81,7 +83,6 @@
             p = multq(r, multq(p, invq(r)));
             gl_Position = projectionMatrix * modelViewMatrix * vec4(p.yzw, 1.0);
 
-
             fColor = ambient + diffuse +specular;
         
             fTexCoord = vTexCoord;
@@ -102,8 +103,8 @@
         
         void
         main()
-        {
-            gl_FragColor = fColor*texture2D(texture, fTexCoord);
+        {   
+            gl_FragColor = fColor*(texture2D(texture, fTexCoord));
         }
     </script>
 

@@ -11,7 +11,6 @@ var set = false;
 
 var pointsArray = [];
 var normalsArray = [];
-var cubeMapPoints = [];
 
 var near = -10;
 var far = 10;
@@ -38,7 +37,7 @@ var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
 var materialDiffuse = vec4( 1.0, 0.8, 0.3, 1.0 );
 var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
-var materialShininess = 10.0;
+var materialShininess = 3.0;
 
 var ctm;
 var ambientColor, diffuseColor, specularColor;
@@ -64,17 +63,15 @@ var eye;
 var at = vec3(0.0, 0.0, 0.0);
 var up = vec3(0.0, 1.0, 0.0);
 
-var texture;
+var texture, texture2;
 var texCoordsArray = [];
 
 var u, v; //parametric points for sphere texture
 
-
+var clouds;
 
 function multq( a,  b)
 {
-   // vec4(a.x*b.x - dot(a.yzw, b.yzw), a.x*b.yzw+b.x*a.yzw+cross(b.yzw, a.yzw))
-
    var s = vec3(a[1], a[2], a[3]);
    var t = vec3(b[1], b[2], b[3]);
    return(vec4(a[0]*b[0] - dot(s,t), add(cross(t, s), add(scale(a[0],t), scale(b[0],s)))));
@@ -223,6 +220,17 @@ function configureTexture( image ) {
 }
 
 
+function createTexture(url)
+{
+    var image = new Image();
+    image.onload = function() {
+        configureTexture( image );
+    }
+    image.src = url;
+}
+
+
+
 
 window.onload = function init() {
 
@@ -282,13 +290,8 @@ window.onload = function init() {
     gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vTexCoord );
 
-
-    //creates texture using the earth image
-    var image = new Image();
-    image.onload = function() {
-        configureTexture( image );
-    }
-    image.src = "./images/earth_texture_day.jpg";
+    createTexture("./images/earthcloudless_resize.png");
+    clouds = true;
 
     modelViewMatrixLoc = gl.getUniformLocation( program, "modelViewMatrix" );
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
@@ -323,10 +326,22 @@ window.onload = function init() {
         mouseMotion(x, y);
     } );
 
+    document.getElementById("Button0").onclick = function() {
+        if (clouds) {
+            createTexture("./images/earthwclouds_resize.png");
+            clouds = false;
+        }
+        else {
+            createTexture("./images/earthcloudless_resize.png");
+            clouds = true;
+        }
+    }
+
     render();
 }
 
-
+var rotation;
+var c,s;
 function render() {
 
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -334,11 +349,10 @@ function render() {
 
     if(trackballMove) {
         axis = normalize(axis);
-        var c = Math.cos(angle/2.0);
-        var s = Math.sin(angle/2.0);
+        c = Math.cos(angle/2.0);
+        s = Math.sin(angle/2.0);
 
-        //console.log("before multq");
-        var rotation = vec4(c, s*axis[0], s*axis[1], s*axis[2]);
+        rotation = vec4(c, s*axis[0], s*axis[1], s*axis[2]);
         rotationMatrix = multq(rotationMatrix, rotation);
 
         gl.uniform4fv(rotationMatrixLoc, flatten(rotationMatrix));
