@@ -328,7 +328,7 @@ window.onload = function init() {
 
     canvas.addEventListener("wheel", function(event) {
         var wheelChange = event.deltaY/1000;
-        if (ytop + wheelChange > 0) {
+        if (ytop + wheelChange > 0.80) {
             left -= wheelChange;
             right += wheelChange;
             bottom -= wheelChange;
