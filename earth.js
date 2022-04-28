@@ -175,6 +175,8 @@ function triangle(a, b, c) {
 }
 
 
+
+
 function divideTriangle(a, b, c, count) {
     if ( count > 0 ) {
 
@@ -195,6 +197,7 @@ function divideTriangle(a, b, c, count) {
         triangle( a, b, c );
     }
 }
+
 
 
 function tetrahedron(a, b, c, d, n) {
@@ -228,8 +231,6 @@ function createTexture(url)
     }
     image.src = url;
 }
-
-
 
 
 window.onload = function init() {
@@ -326,16 +327,26 @@ window.onload = function init() {
         mouseMotion(x, y);
     } );
 
-    canvas.addEventListener("wheel", function(event) {
-        var wheelChange = event.deltaY/1000;
+    document.getElementById("Button1").onclick = function(){
+        var wheelChange = -.1;
         if (ytop + wheelChange > 0.80) {
             left -= wheelChange;
             right += wheelChange;
             bottom -= wheelChange;
             ytop += wheelChange;
-            console.log(ytop);
         }
-    });
+    }
+
+    document.getElementById("Button2").onclick = function(){
+        var wheelChange = .1;
+        if (ytop + wheelChange > 0.80) {
+            left -= wheelChange;
+            right += wheelChange;
+            bottom -= wheelChange;
+            ytop += wheelChange;
+        }
+    }
+
 
     document.getElementById("Button0").onclick = function() {
         if (clouds) {
@@ -390,7 +401,7 @@ function render() {
     gl.uniformMatrix3fv(normalMatrixLoc, false, flatten(normalMatrix) );
 
     for( var i=0; i<index; i+=3)
-        gl.drawArrays( gl.TRIANGLES, i, 3 );
+        gl.drawArrays( gl.TRIANGLES, i, 3);
 
     window.requestAnimFrame(render);
 }
