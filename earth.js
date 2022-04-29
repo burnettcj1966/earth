@@ -37,7 +37,7 @@ var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
 var materialDiffuse = vec4( 1.0, 0.8, 0.3, 1.0 );
 var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
-var materialShininess = 3.0;
+var materialShininess = 1.5;
 
 var ctm;
 var ambientColor, diffuseColor, specularColor;
@@ -173,7 +173,6 @@ function triangle(a, b, c) {
      index += 3;
 
 }
-
 
 
 
