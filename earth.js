@@ -347,7 +347,6 @@ window.onload = function init() {
         }
     }
 
-
     document.getElementById("Button0").onclick = function() {
         if (clouds) {
             createTexture("./images/earthwclouds_resize.png");

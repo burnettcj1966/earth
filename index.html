@@ -20,12 +20,11 @@
         varying vec4 fColor;
         varying vec2 fTexCoord;
         
-        uniform vec4 ambientProduct, diffuseProduct, specularProduct;
         uniform mat4 modelViewMatrix;
         uniform mat4 projectionMatrix;
         uniform vec4 lightPosition;
-        uniform float shininess;
         uniform mat3 normalMatrix;
+        varying vec3 N, L, E;
 
         uniform vec3 theta;
 
@@ -51,7 +50,7 @@
             
             // vector from vertex position to light source
             
-            vec3 L;
+            L;
             
             // check for directional light
             
@@ -61,38 +60,17 @@
             // Because the eye point the is at the orgin
             // the vector from the vertex position to the eye is
                 
-            vec3 E = -normalize( pos );
-            
-            // halfway vector
-            
-            vec3 H = normalize( L + E );
+            E = -normalize( pos );
         
             // Transform vertex normal into eye coordinates
             
-            vec3 N = normalize( normalMatrix*vNormal.xyz);
+            N = normalize( normalMatrix*vNormal.xyz);
         
-            // Compute terms in the illumination equation
-            vec4 ambient = ambientProduct;
-        
-            float Kd = max( dot(L, N), 0.0 );
-            vec4  diffuse = Kd*diffuseProduct;
-        
-            float Ks = pow( max(dot(N, H), 0.0), shininess );
-            vec4  specular = Ks * specularProduct;
-            
-            if( dot(L, N) < 0.0 ) {
-            specular = vec4(0.0, 0.0, 0.0, 1.0);
-            } 
-
             vec4 p = vec4(0.0, vPosition.xyz);
             p = multq(r, multq(p, invq(r)));
             gl_Position = projectionMatrix * modelViewMatrix * vec4(p.yzw, 1.0);
 
-            fColor = ambient + diffuse +specular;
-        
             fTexCoord = vTexCoord;
-
-            fColor.a = 1.0;
         }
         
     </script>
@@ -103,17 +81,31 @@
         
         varying vec4 fColor;
         varying vec2 fTexCoord;
+        uniform vec4 ambientProduct, diffuseProduct, specularProduct;
+        uniform float shininess;
+        varying vec3 N, L, E;
 
         uniform sampler2D texture;
         
         void
         main()
         {   
+            vec4 fColor;
+            vec3 H = normalize(L + E);
+            
+            vec4 ambient = ambientProduct;
+            float Kd = max(dot(L,N), 0.0);
+            vec4 diffuse = Kd*diffuseProduct;
+            float Ks = pow(max(dot(N,H),0.0), shininess);
+            vec4 specular = Ks * specularProduct;
+
+            if(dot(L,N) < 0.0) specular = vec4(0.0, 0.0, 0.0, 1.0);
+
+            fColor = ambient + diffuse + specular;
+            fColor.a = 1.0;
             gl_FragColor = fColor*(texture2D(texture, fTexCoord));
         }
     </script>
-
-    <canvas id = "gl-canvas" style = "background: url('images/back.png')" width = "1024" height = "1024"></canvas>
     
 </head>
 <body>
@@ -123,10 +115,10 @@
         <script type="text/javascript" src="../Common/MV.js"></script>
         <script type="text/javascript" src="earth.js"></script>
     
-    
-        <canvas id="gl-canvas" width="1024" height="1024">
+        <canvas id = "gl-canvas" style = "background: url('images/back.png')" width = "812"  height =  "812"></canvas>
+        <!-- <canvas id="gl-canvas" width="512" height="512">
         Oops ... your browser doesn't support the HTML5 canvas element
-        </canvas>
+        </canvas> -->
     
     
 </body>
