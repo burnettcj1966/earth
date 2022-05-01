@@ -118,7 +118,8 @@ function mouseMotion( x,  y)
 	       lastPos[2] = curPos[2];
       }
     }
-    render();
+    //render();
+    //window.requestAnimFrame(render);
 }
 
 function startMotion( x,  y)
@@ -140,8 +141,9 @@ function stopMotion( x,  y)
     }
     else {
 	     angle = 0.0;
-	     trackballMove = false;
+	     //trackballMove = false;
     }
+    trackballMove = false;
 }
 
 
@@ -253,7 +255,7 @@ window.onload = function init() {
     var specularProduct = mult(lightSpecular, materialSpecular);
 
 
-    tetrahedron(va, vb, vc, vd, 4);
+    tetrahedron(va, vb, vc, vd, 8);
     //NBUFFER
     var nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
@@ -312,18 +314,22 @@ window.onload = function init() {
         var x = 2*event.clientX/canvas.width-1;
         var y = 2*(canvas.height-event.clientY)/canvas.height-1;
         startMotion(x, y);
+        console.log("Mouse down");
     });
       
     canvas.addEventListener("mouseup", function(event){
         var x = 2*event.clientX/canvas.width-1;
         var y = 2*(canvas.height-event.clientY)/canvas.height-1;
         stopMotion(x, y);
+        console.log("Mouse up");
         });
       
     canvas.addEventListener("mousemove", function(event){
+        if (trackingMouse == false) return;
         var x = 2*event.clientX/canvas.width-1;
         var y = 2*(canvas.height-event.clientY)/canvas.height-1;
         mouseMotion(x, y);
+        console.log("Mouse move");
     } );
 
     document.getElementById("Button1").onclick = function(){
@@ -369,17 +375,16 @@ function render() {
 
     if(trackballMove) {
         axis = normalize(axis);
-        c = Math.cos(angle/2.0);
-        s = Math.sin(angle/2.0);
+        c = Math.cos(angle-0.005/2.0);
+        s = Math.sin(angle-0.005/2.0);
 
-        rotation = vec4(c, s*axis[0], s*axis[1], s*axis[2]);
+        rotation = vec4(c, s*axis[0] , s*axis[1], s*axis[2]);
         rotationMatrix = multq(rotationMatrix, rotation);
-
         gl.uniform4fv(rotationMatrixLoc, flatten(rotationMatrix));
     }
-
+    
     //Rotation element
-    theta += 0.0001;
+    theta += 0.001;
 
     eye = vec3(radius*Math.sin(theta)*Math.cos(phi),
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
@@ -398,8 +403,7 @@ function render() {
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     gl.uniformMatrix3fv(normalMatrixLoc, false, flatten(normalMatrix) );
 
-    for( var i=0; i<index; i+=3)
-        gl.drawArrays( gl.TRIANGLES, i, 3);
+    gl.drawArrays( gl.TRIANGLES, 0, 3*index);
 
     window.requestAnimFrame(render);
 }
