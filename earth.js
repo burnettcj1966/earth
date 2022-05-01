@@ -368,8 +368,9 @@ window.onload = function init() {
 
 var rotation;
 var c,s;
-function render() {
-
+const FPS = document.querySelector("#fps");
+let then = 0;
+function render(now) {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor(0, 0, 0, 0.0);
 
@@ -404,6 +405,12 @@ function render() {
     gl.uniformMatrix3fv(normalMatrixLoc, false, flatten(normalMatrix) );
 
     gl.drawArrays( gl.TRIANGLES, 0, 3*index);
+
+    now *= 0.001;
+    const deltaTime = now-then;
+    then = now;
+    const fps = 1/deltaTime;
+    FPS.textContent = fps.toFixed(1);
 
     window.requestAnimFrame(render);
 }
