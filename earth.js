@@ -19,10 +19,10 @@ var theta  = 0.0;
 var phi    = 0.0;
 var dr = 5.0 * Math.PI/180.0;
 
-var left = -3.0;
-var right = 3.0;
-var ytop =3.0;
-var bottom = -3.0;
+var left = -2.7;
+var right = 2.7;
+var ytop =2.7;
+var bottom = -2.7;
 
 var va = vec4(0.0, 0.0, -1.0,1);
 var vb = vec4(0.0, 0.942809, 0.333333, 1);
@@ -51,8 +51,8 @@ var rotationMatrix, rotationMatrixLoc;
 var  angle = 0.0;
 var  axis = [0, 0, 1];
 
-var 	trackingMouse = false;
-var   trackballMove = false;
+var trackingMouse = false;
+var trackballMove = false;
 
 var lastPos = [0, 0, 0];
 var curx, cury;
@@ -69,7 +69,10 @@ var texCoordsArray = [];
 var u, v; //parametric points for sphere texture
 
 var clouds;
+var autoRotate = true;
 
+
+/* Trackball functionality*/
 function multq( a,  b)
 {
    var s = vec3(a[1], a[2], a[3]);
@@ -95,6 +98,7 @@ function trackballView( x,  y ) {
     return v;
 }
 
+/*Tracks mouse movement and adjusts rotation angle of sphere*/
 function mouseMotion( x,  y)
 {
     var dx, dy, dz;
@@ -118,10 +122,9 @@ function mouseMotion( x,  y)
 	       lastPos[2] = curPos[2];
       }
     }
-    //render();
-    //window.requestAnimFrame(render);
 }
 
+/*Initialization of trackball motion*/
 function startMotion( x,  y)
 {
     trackingMouse = true;
@@ -134,6 +137,7 @@ function startMotion( x,  y)
 	  trackballMove=true;
 }
 
+/*Halting trackball motion*/
 function stopMotion( x,  y)
 {
     trackingMouse = false;
@@ -147,6 +151,8 @@ function stopMotion( x,  y)
 }
 
 
+/*Given the sphere's points as an argument, computes the parametric
+    coordinates, uv, and adds to texCoordsArray*/
 function computeParametric(pointsArray) {
     for (var i = 0; i < pointsArray.length; i++)
     {
@@ -161,6 +167,7 @@ function computeParametric(pointsArray) {
     }
 }
 
+/*Adds points and normals for sphere*/
 function triangle(a, b, c) {
 
      pointsArray.push(a);
@@ -175,8 +182,6 @@ function triangle(a, b, c) {
      index += 3;
 
 }
-
-
 
 function divideTriangle(a, b, c, count) {
     if ( count > 0 ) {
@@ -199,8 +204,6 @@ function divideTriangle(a, b, c, count) {
     }
 }
 
-
-
 function tetrahedron(a, b, c, d, n) {
     divideTriangle(a, b, c, n);
     divideTriangle(d, c, b, n);
@@ -208,7 +211,7 @@ function tetrahedron(a, b, c, d, n) {
     divideTriangle(a, c, d, n);
 }
 
-
+/*Configures the texture for the sphere*/
 function configureTexture( image ) {
     texture = gl.createTexture();
     gl.bindTexture( gl.TEXTURE_2D, texture );
@@ -223,7 +226,7 @@ function configureTexture( image ) {
    gl.uniform1i(gl.getUniformLocation(program, "texture"), 0);
 }
 
-
+/*Creates an image given an image url as an argument*/
 function createTexture(url)
 {
     var image = new Image();
@@ -254,8 +257,8 @@ window.onload = function init() {
     var diffuseProduct = mult(lightDiffuse, materialDiffuse);
     var specularProduct = mult(lightSpecular, materialSpecular);
 
+    tetrahedron(va, vb, vc, vd, 8); //Set to 8 subdivisions. More cause performance loss. 
 
-    tetrahedron(va, vb, vc, vd, 8);
     //NBUFFER
     var nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
@@ -292,6 +295,7 @@ window.onload = function init() {
     gl.vertexAttribPointer( vTexCoord, 2, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vTexCoord );
 
+    /*Assigns the initial earth texture*/
     createTexture("./images/earthcloudless_resize.png");
     clouds = true;
 
@@ -299,6 +303,7 @@ window.onload = function init() {
     projectionMatrixLoc = gl.getUniformLocation( program, "projectionMatrix" );
     normalMatrixLoc = gl.getUniformLocation( program, "normalMatrix" );
 
+    /*Sending lighting data to shaders*/
     gl.uniform4fv( gl.getUniformLocation(program,
          "ambientProduct"),flatten(ambientProduct) );
     gl.uniform4fv( gl.getUniformLocation(program,
@@ -310,6 +315,7 @@ window.onload = function init() {
     gl.uniform1f( gl.getUniformLocation(program,
          "shininess"),materialShininess );
 
+    /*When a mouse click is detected, initialize the trackball*/
     canvas.addEventListener("mousedown", function(event){
         var x = 2*event.clientX/canvas.width-1;
         var y = 2*(canvas.height-event.clientY)/canvas.height-1;
@@ -317,13 +323,15 @@ window.onload = function init() {
         console.log("Mouse down");
     });
       
+    /*When a mouse click is ended, halt the trackball*/
     canvas.addEventListener("mouseup", function(event){
         var x = 2*event.clientX/canvas.width-1;
         var y = 2*(canvas.height-event.clientY)/canvas.height-1;
         stopMotion(x, y);
         console.log("Mouse up");
         });
-      
+    
+    /*When a click has happened, and the mouse is actively being moved, adjust the trackball*/
     canvas.addEventListener("mousemove", function(event){
         if (trackingMouse == false) return;
         var x = 2*event.clientX/canvas.width-1;
@@ -332,6 +340,7 @@ window.onload = function init() {
         console.log("Mouse move");
     } );
 
+    /*Zoom in on sphere*/
     document.getElementById("Button1").onclick = function(){
         var wheelChange = -.1;
         if (ytop + wheelChange > 0.80) {
@@ -342,6 +351,7 @@ window.onload = function init() {
         }
     }
 
+    /*Zoom out from the sphere*/
     document.getElementById("Button2").onclick = function(){
         var wheelChange = .1;
         if (ytop + wheelChange > 0.80) {
@@ -352,6 +362,7 @@ window.onload = function init() {
         }
     }
 
+    /*Change between a cloudless and cloud texture*/
     document.getElementById("Button0").onclick = function() {
         if (clouds) {
             createTexture("./images/earthwclouds_resize.png");
@@ -363,17 +374,25 @@ window.onload = function init() {
         }
     }
 
+    /*Toggles the autorotation of the sphere*/
+    document.getElementById("Button3").onclick = function() {
+        if (autoRotate) autoRotate = false;
+        else autoRotate = true;
+    }
+
     render();
 }
 
 var rotation;
 var c,s;
-const FPS = document.querySelector("#fps");
+const FPS = document.querySelector("#fps"); //for displaying FPS data
 let then = 0;
+
 function render(now) {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.clearColor(0, 0, 0, 0.0);
 
+    /*if the trackball is actively being moved, adjust the rotationMatrix to move sphere*/
     if(trackballMove) {
         axis = normalize(axis);
         c = Math.cos(angle-0.005/2.0);
@@ -384,8 +403,8 @@ function render(now) {
         gl.uniform4fv(rotationMatrixLoc, flatten(rotationMatrix));
     }
     
-    //Rotation element
-    theta += 0.001;
+    /*Auto rotate the sphere by changing theta*/
+    if (autoRotate) theta += 0.001;
 
     eye = vec3(radius*Math.sin(theta)*Math.cos(phi),
         radius*Math.sin(theta)*Math.sin(phi), radius*Math.cos(theta));
@@ -393,7 +412,7 @@ function render(now) {
     modelViewMatrix = lookAt(eye, at , up );
     projectionMatrix = ortho(left, right, bottom, ytop, near, far);
 
-    //takes the transpose of the modelViewMatrix to rotate normals
+    /*Takes the transpose of the modelViewMatrix to rotate normals*/
     normalMatrix = [
         vec3(modelViewMatrix[0][0], modelViewMatrix[1][0], modelViewMatrix[2][0]),
         vec3(modelViewMatrix[0][1], modelViewMatrix[1][1], modelViewMatrix[2][1]),
@@ -404,8 +423,10 @@ function render(now) {
     gl.uniformMatrix4fv(projectionMatrixLoc, false, flatten(projectionMatrix) );
     gl.uniformMatrix3fv(normalMatrixLoc, false, flatten(normalMatrix) );
 
+    /*Draw sphere to screen*/
     gl.drawArrays( gl.TRIANGLES, 0, 3*index);
 
+    /*FPS data*/
     now *= 0.001;
     const deltaTime = now-then;
     then = now;
